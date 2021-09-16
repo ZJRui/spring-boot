@@ -125,6 +125,41 @@ public abstract class JpaBaseConfiguration implements BeanFactoryAware {
 		return builder;
 	}
 
+	/**
+	 * 	javax.sql.DataSource.getConnection	 480 kB (16 %)	2,789
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.jdbc.datasource.DataSourceUtils.doGetConnection
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.jdbc.datasource.DataSourceUtils.getConnection
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.jdbc.core.JdbcTemplate.execute
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.jdbc.EmbeddedDatabaseConnection.isEmbedded
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.JpaProperties$Hibernate.getDefaultDdlAuto
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.JpaProperties$Hibernate.getOrDeduceDdlAuto
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.JpaProperties$Hibernate.getAdditionalProperties
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.JpaProperties.getHibernateProperties
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.getVendorProperties
+	 *   -======================注意这个地方质细腻entityManagerFactory
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration.entityManagerFactory
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration$$EnhancerBySpringCGLIB$$6c616b23.CGLIB$entityManagerFactory$4
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration$$EnhancerBySpringCGLIB$$6c616b23$$FastClassBySpringCGLIB$$c01983d3.invoke
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.cglib.proxy.MethodProxy.invokeSuper
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration$$EnhancerBySpringCGLIB$$6c616b23.entityManagerFactory
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. java.lang.reflect.Method.invoke
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.beans.factory.support.AbstractBeanFactory.getBean
+	 *   16.2% - 480 kB - 2,789 hot spot alloc. org.springframework.context.support.AbstractApplicationContext.getBean
+	 *
+	 *
+	 * @param factoryBuilder
+	 * @return
+	 */
 	@Bean
 	@Primary
 	@ConditionalOnMissingBean({ LocalContainerEntityManagerFactoryBean.class, EntityManagerFactory.class })
