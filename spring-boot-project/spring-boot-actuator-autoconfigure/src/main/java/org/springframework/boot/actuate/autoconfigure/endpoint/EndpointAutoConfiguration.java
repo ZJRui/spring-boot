@@ -44,6 +44,16 @@ import org.springframework.core.env.Environment;
  * @author Chao Chang
  * @since 2.0.0
  */
+
+/**
+ *
+ * 在 spring.factories文件中的
+ * org.springframework.boot.autoconfigure.EnableAutoConfiguration= org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration,\
+ * 因此 SpringBoot启动的时候 会加载 EndpointAutoConfiguration 中配置的bean
+ *
+ * 像 /health 这个Endpoint也会在 spring.factories的EnableAutoConfiguration中配置 ：org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration,\
+ *
+ */
 @Configuration(proxyBeanMethods = false)
 public class EndpointAutoConfiguration {
 
