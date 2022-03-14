@@ -171,6 +171,13 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		super.doClose();
 	}
 
+	/**
+	 * Tomcat启动 ，Tomcat创建
+	 * ServletWebServerApplicationContext 作为ApplicationContext，本身重写了onRefresh方法 ，用来创建Tomcat
+	 * ServletWebServerApplicationContext.onRefresh()  (org.springframework.boot.web.servlet.context)
+	 *     AbstractApplicationContext.refresh()  (org.springframework.context.support)
+	 *
+	 */
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
 		ServletContext servletContext = getServletContext();
