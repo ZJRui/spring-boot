@@ -43,4 +43,11 @@ import org.springframework.context.annotation.Import;
 		HealthEndpointWebExtensionConfiguration.class, HealthEndpointReactiveWebExtensionConfiguration.class })
 public class HealthEndpointAutoConfiguration {
 
+	/**
+	 * 过程，spring-boot-starter-actuator是官方提供的starter，包含spring-boot-actuator-autoconfigure和actuator本身逻辑两部分，
+	 * 其中autoconfigure中spring.factories中配置了诸多自动配置类，这些类在springboot启动时，都会因为starter机制，而被实例化，
+	 * 这里也正是actuator被启动的开端，其中就包括HealthEndpointAutoConfiguration，
+	 * 该类在被实例化前会因@Import注解先实例化HealthEndpointConfiguration，
+	 * 接着即创建HealthEndpoint，并将该实例加入spring容器，源码如下：
+	 */
 }
