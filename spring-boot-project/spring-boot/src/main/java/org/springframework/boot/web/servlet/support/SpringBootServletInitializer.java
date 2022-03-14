@@ -72,6 +72,85 @@ import org.springframework.web.context.WebApplicationContext;
  * @since 2.0.0
  * @see #configure(SpringApplicationBuilder)
  */
+
+/**
+ *
+ * SpringBoot 的两种启动方式  一个是 war 部署，一个是jar部署
+ *
+ *
+ * 首先我们说 SpringBoot是 如何 支持嵌入式Servlet的，也就是Jar 直接启动的方式。 所谓支持 的含义就是 Servlet容器 （ServletContext）中如何注册Servlet、Filter、Listener等组件
+ * 以及如何启动Tomcat。
+ *  *
+ * 		 * 	 * Tomcat启动 ，Tomcat创建
+ * 		 * 	 * ServletWebServerApplicationContext 作为ApplicationContext，本身重写了onRefresh方法 ，用来创建Tomcat
+ * 		 * 	 * ServletWebServerApplicationContext.onRefresh()  (org.springframework.boot.web.servlet.context)
+ * 		 * 	 *     AbstractApplicationContext.refresh()  (org.springframework.context.support)
+ * 		 *
+ * 		 * 	 问题 Tomcat 和TomcatStarter 有什么区别？
+ * 		 * 	 TomcatStarter 本质上是一个ServletContainerInitializer.
+ * 		 * 	 ServletContainerInitializer 是servlet 3.0的规范。  传统的tomcat启动的时候 会通过spi机制 获取
+ * 		 * 	 meta-info/services目录下配置的ServletContainerInitializer 实现类，然后在StandardContext的start方法中
+ * 		 * 	 调用每一个ServletContainerInitializer实现类的onStartUp方法。
+ * 		 *
+ * 		 *
+ * 		 * 	 在这里 首先我们创建了Tomcat，然后在下面的prepareContext 中创建了 TomcatEmbeddedContext （这是StandardContext的实现类）
+ * 		 *
+ * 		 * 	 然后在prepareContext中调用了configureContext ，在这个config方法中创建了TomcatStarter（这是ServletContainerInitializer实现类）
+ * 		 * 	 并将这个TomcatStarter放置到StandardContext中。
+ * 		 *
+ * 		 * 	 那么TomcatStarter的作用是什么呢？
+ * 		 * 	 TomcatStarter作用是获取到Tomcat的StandardContext的启动时机。 在TomcatStarter的实现中 会调用 每个 ServletContextInitializer 的onStartUp方法
+ * 		 *
+ * 		 * 	 那么ServletContextInitializer 又是什么呢？  ServletContextInitializer 是SpringBoot提供的API
+ * 		 * 	 他的子类是RegistrationBean 、 ServletListenerRegistrationBean  ServletRegistrationBean FilterRegistrationBean
+ * 		 *
+ * 		 * 	 在onStartUp方法中会将 这些Bean 注入到ServletContext中 ：servletContext.addFilter(getOrDeduceName(filter), filter);
+ * 		 * 	 servletContext.addListener(this.listener);  servletContext.addServlet(name, this.servlet);
+ * 		 *
+ * 		 * 	 因此 ServletContextInitializer 接口的主要作用就是动态 将Servlet、Filter、Listener添加到ServletContext中。
+ * 		 *
+ * 		 *
+ * 		 * 	 因此在 web 自动装配的过程中 WebMvcAutoConfiguration 导入了 DispatcherServletAutoConfiguration ，在DispatcherServletAutoConfiguration中 我们 既 创建了
+ * 		 * 	 DispatcherServlet对象， 将这个servlet注入到IOC容器中， 又创建了 DispatcherServletRegistrationBean ，使用这个RegistrationBean 将 DispatcherServlet 注册到ServletContext中。
+ * 		 *
+ * 		 * 	 如果我们想自己注册Servlet或者Filter，只需要使用RegistrationBean 将Servlet、filter注册到ServletContext。 并不需要把Servlet、Filter对象注册到IOC容器中。因此一般如下：
+ * 		 *            @Bean
+ * 		 *     public DispatcherServletRegistrationBean dispatcherServletRegistrationBeanJsp() {
+ * 		 *         DispatcherServlet dispatcherServlet = new DispatcherServlet(new AnnotationConfigServletWebApplicationContext("com.michael.springsecurityentitlement.jsp"));
+ * 		 *         DispatcherServletRegistrationBean dispatcher = new DispatcherServletRegistrationBean(dispatcherServlet , "/jsp/*");
+ * 		 *         dispatcher.setName("jspDispatcher");//注册另外一个servlet
+ * 		 *         dispatcher.setLoadOnStartup(1);
+ * 		 *         dispatcher.setOrder(Ordered.HIGHEST_PRECEDENCE);
+ * 		 *         return dispatcher;
+ * 		 *     }
+ * 		 *
+ *
+ *
+ * 		 ===========================
+ *
+ * 		 然后我们来说  SpringBoot是如何支持war 部署的
+ * 		 在Servlet3.0 API中提供了一个javax.servlet.ServletContainerInitializer接口，
+ * 		 Tomcat启动的时候会通过ServiceLoader机制加载meta-info/services目录配置的实现类。
+ * 		 Spring在Spring-web项目的services目录下配置了SpringServletContainerInitializer
+ * 		 作为实现类。内部实现会调用所有WebApplicationInitializer的方法。
+ * 		 而SpringBoot针对WebApplicationInitializer 提供了SpringBootServletInitializer 作为实现类，在这个实现类中会创建springIOC容器。
+ *
+ *
+ * 		 在SpringBootServletInitializer的createRootApplicationContext 方法中 创建IOC容器，在在创建ApplicationContext之前，给这个ApplicationContextBuilder
+ * 		 添加了一个 ApplicationContextInitializer  ServletContextApplicationContextInitializer ，这个实现的方法中 将ServletContext 设置给了ApplicationContext。
+ * 		 最终被创建出来的 ApplicationContext就是AnnotationConfigServletWebServerApplicationContext ，这个context重写了onRefresh方法。
+ * 		 在onRefresh方法中调用了createWebServer ,然后根据 判断当前context中是否持有 ServletContext来 决定是否 创建Tomcat。 war部署的时候并不需要创建tomcat，
+ * 		 但是在createWebServer方法中 会 获取所有ServletContextInitializer的实现类（一般都是RegistrationBean，用来注册Filter、Listener、 Servlet）
+ * 				 * 然后调用其onStartUp方法， 将servlet、listener、Filter注册到ServletContext中。
+ *
+ * 				最终war部署模式下 也将 servlet、filter、listener组件注册到了ServletContext中。
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 public abstract class SpringBootServletInitializer implements WebApplicationInitializer {
 
 	protected Log logger; // Don't initialize early
@@ -92,6 +171,12 @@ public abstract class SpringBootServletInitializer implements WebApplicationInit
 		// Logger initialization is deferred in case an ordered
 		// LogServletContextInitializer is being used
 		this.logger = LogFactory.getLog(getClass());
+		/**
+		 * 注意这里创建  ApplicationContext。 非web部署方式下   Tomcat会将ServletContext传递给ServletContainerInitializer ->webApplicationInitializer
+		 *
+		 * 而 通过jar包直接启动的时候 没有ServletContext
+		 *
+		 */
 		WebApplicationContext rootApplicationContext = createRootApplicationContext(servletContext);
 		if (rootApplicationContext != null) {
 			servletContext.addListener(new SpringBootContextLoaderListener(rootApplicationContext, servletContext));
@@ -133,7 +218,19 @@ public abstract class SpringBootServletInitializer implements WebApplicationInit
 			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, null);
 			builder.initializers(new ParentContextApplicationContextInitializer(parent));
 		}
+		/**
+		 *
+		 * 这里 给 将要创建的 ApplicationContext添加了一个  ServletContextApplicationContextInitializer（ApplicationContextInitializer）
+		 * 在这个ServletContextApplicationContextInitializer 接口实现的方法中， 它将servletContext 设置给了 ApplicationContext
+		 *
+		 * 因此通过war模式部署 产生的ApplicationContext 中会持有  servletContext
+		 *
+		 *
+		 */
 		builder.initializers(new ServletContextApplicationContextInitializer(servletContext));
+		/**
+		 * 最终创建出来的 context 就是  AnnotationConfigServletWebServerApplicationContext
+		 */
 		builder.contextFactory((webApplicationType) -> new AnnotationConfigServletWebServerApplicationContext());
 		builder = configure(builder);
 		builder.listeners(new WebEnvironmentPropertySourceInitializer(servletContext));

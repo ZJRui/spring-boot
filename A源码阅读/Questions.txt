@@ -1,1 +1,46 @@
 1,Spring Boot如何支持嵌入式Servlet容器
+		 *
+		 * 	 * Tomcat启动 ，Tomcat创建
+		 * 	 * ServletWebServerApplicationContext 作为ApplicationContext，本身重写了onRefresh方法 ，用来创建Tomcat
+		 * 	 * ServletWebServerApplicationContext.onRefresh()  (org.springframework.boot.web.servlet.context)
+		 * 	 *     AbstractApplicationContext.refresh()  (org.springframework.context.support)
+		 *
+		 * 	 问题 Tomcat 和TomcatStarter 有什么区别？
+		 * 	 TomcatStarter 本质上是一个ServletContainerInitializer.
+		 * 	 ServletContainerInitializer 是servlet 3.0的规范。  传统的tomcat启动的时候 会通过spi机制 获取
+		 * 	 meta-info/services目录下配置的ServletContainerInitializer 实现类，然后在StandardContext的start方法中
+		 * 	 调用每一个ServletContainerInitializer实现类的onStartUp方法。
+		 *
+		 *
+		 * 	 在这里 首先我们创建了Tomcat，然后在下面的prepareContext 中创建了 TomcatEmbeddedContext （这是StandardContext的实现类）
+		 *
+		 * 	 然后在prepareContext中调用了configureContext ，在这个config方法中创建了TomcatStarter（这是ServletContainerInitializer实现类）
+		 * 	 并将这个TomcatStarter放置到StandardContext中。
+		 *
+		 * 	 那么TomcatStarter的作用是什么呢？
+		 * 	 TomcatStarter作用是获取到Tomcat的StandardContext的启动时机。 在TomcatStarter的实现中 会调用 每个 ServletContextInitializer 的onStartUp方法
+		 *
+		 * 	 那么ServletContextInitializer 又是什么呢？  ServletContextInitializer 是SpringBoot提供的API
+		 * 	 他的子类是RegistrationBean 、 ServletListenerRegistrationBean  ServletRegistrationBean FilterRegistrationBean
+		 *
+		 * 	 在onStartUp方法中会将 这些Bean 注入到ServletContext中 ：servletContext.addFilter(getOrDeduceName(filter), filter);
+		 * 	 servletContext.addListener(this.listener);  servletContext.addServlet(name, this.servlet);
+		 *
+		 * 	 因此 ServletContextInitializer 接口的主要作用就是动态 将Servlet、Filter、Listener添加到ServletContext中。
+		 *
+		 *
+		 * 	 因此在 web 自动装配的过程中 WebMvcAutoConfiguration 导入了 DispatcherServletAutoConfiguration ，在DispatcherServletAutoConfiguration中 我们 既 创建了
+		 * 	 DispatcherServlet对象， 将这个servlet注入到IOC容器中， 又创建了 DispatcherServletRegistrationBean ，使用这个RegistrationBean 将 DispatcherServlet 注册到ServletContext中。
+		 *
+		 * 	 如果我们想自己注册Servlet或者Filter，只需要使用RegistrationBean 将Servlet、filter注册到ServletContext。 并不需要把Servlet、Filter对象注册到IOC容器中。因此一般如下：
+		 *            @Bean
+		 *     public DispatcherServletRegistrationBean dispatcherServletRegistrationBeanJsp() {
+		 *         DispatcherServlet dispatcherServlet = new DispatcherServlet(new AnnotationConfigServletWebApplicationContext("com.michael.springsecurityentitlement.jsp"));
+		 *         DispatcherServletRegistrationBean dispatcher = new DispatcherServletRegistrationBean(dispatcherServlet , "/jsp/*");
+		 *         dispatcher.setName("jspDispatcher");//注册另外一个servlet
+		 *         dispatcher.setLoadOnStartup(1);
+		 *         dispatcher.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		 *         return dispatcher;
+		 *     }
+		 *
+		 *
