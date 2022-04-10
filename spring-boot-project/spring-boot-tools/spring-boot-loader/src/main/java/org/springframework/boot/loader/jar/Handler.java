@@ -39,6 +39,18 @@ import java.util.regex.Pattern;
  * @see JarFile#registerUrlProtocolHandler()
  */
 public class Handler extends URLStreamHandler {
+	/**
+	 * 关于 URL协议处理器Handler参考 https://blog.csdn.net/yangguosb/article/details/80759554
+	 * 关于java中内置的Handler参考《Java网络编程精解》
+	 *
+	 *JarFileArchive内部的一些依赖jar对应的URL(SpringBoot使用org.springframework.boot.loader.jar.Handler处理器来处理这些URL)：
+	 *
+	 * jar:file:/Users/Format/Develop/gitrepository/springboot-analysis/springboot-executable-jar/target/executable-jar-1.0-SNAPSHOT.jar!/lib/spring-boot-starter-web-1.3.5.RELEASE.jar!/
+	 *
+	 * jar:file:/Users/Format/Develop/gitrepository/springboot-analysis/springboot-executable-jar/target/executable-jar-1.0-SNAPSHOT.jar!/lib/spring-boot-loader-1.3.5.RELEASE.jar!/org/springframework/boot/loader/JarLauncher.class
+	 * 我们看到如果有jar包中包含jar，或者jar包中包含jar包里面的class文件，那么会使 用 !/ 分隔开，这种方式只有org.springframework.boot.loader.jar.Handler能处 理，它是SpringBoot内部扩展出来的一种URL协议。
+	 *
+	 */
 
 	// NOTE: in order to be found as a URL protocol handler, this class must be public,
 	// must be named Handler and must be in a package ending '.jar'
@@ -81,6 +93,26 @@ public class Handler extends URLStreamHandler {
 		this.jarFile = jarFile;
 	}
 
+	/**
+	 * 正常情况下classloader只能找到jar里面当前目录或者文件类里面的*.class文件。不支持加载嵌套Jar中的资源。
+	 * SpringBoot中提供了自定义类加载器LaunchedURLClassLoader，在加载类的时候类加载器的loadClass方法会先使用 父类加载器loadClass。
+	 * 如果父类加载器没找到就使用自身的findClass方法，从自身类加载器中寻找。LaunchedURLClassLoader 支持从BOOT-INF/classes
+	 * 和BOOT-INF/lib目录下加载类。ClassLoader在findClass的时候会根据URL获取对应的Resource。这个过程首先需要使用URLStreamHandler针
+	 * 对URL打开一个URL连接URLConnection。 SpringBoot中为了支持自定义的URL 提供了URLStreamHandler协议
+	 * 处理器和URLConnection的实现类JarURLConnection。然后从连接中读取数据封装成JarFile 作为资源Resource
+	 *
+	 * 这个openConnection方法是在 LaunchedURLClassLoader的findClass方法中  通过
+	 *    Resource res = urlclasspahth.getResource(path, false);
+	 *    内部通过创建一个Url ，调用url.openConnection, URL的openConnection方法中 会根据url的协议 选择合适Handler。
+	 *    在这里会选择SpringBoot中提供的这个Handler ，调用这个openConnection方法 创建一个URLConnection
+	 *
+	 *    类加载首先是定位 class文件，将class文件封装成一个Resource对象。内部通过URLConnection来读取class文件的字节码。
+	 *
+	 *
+	 * @param url
+	 * @return
+	 * @throws IOException
+	 */
 	@Override
 	protected URLConnection openConnection(URL url) throws IOException {
 		if (this.jarFile != null && isUrlInJarFile(url, this.jarFile)) {

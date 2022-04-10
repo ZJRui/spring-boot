@@ -90,6 +90,39 @@ public class LaunchedURLClassLoader extends URLClassLoader {
 		this.rootArchive = rootArchive;
 	}
 
+	/**
+	 *
+	 *对于一个URL，JDK或者ClassLoader如何知道怎么读取到里面的内容的？
+	 *
+	 * 实际上流程是这样子的：
+	 *
+	 * LaunchedURLClassLoader.loadClass
+	 * URL.getContent()
+	 * URL.openConnection()
+	 * Handler.openConnection(URL)
+	 * 最终调用的是JarURLConnection的getInputStream()函数。
+	 *
+	 * //org.springframework.boot.loader.jar.JarURLConnection
+	 *        @Override
+	 *    public InputStream getInputStream() throws IOException {
+	 * 		connect();
+	 * 		if (this.jarEntryName.isEmpty()) {
+	 * 			throw new IOException("no entry name specified");
+	 *        }
+	 * 		return this.jarEntryData.getInputStream();
+	 *    }
+	 * 从一个URL，到最终读取到URL里的内容，整个过程是比较复杂的，总结下：
+	 *
+	 * spring boot注册了一个Handler来处理”jar:”这种协议的URL
+	 * spring boot扩展了JarFile和JarURLConnection，内部处理jar in jar的情况
+	 * 在处理多重jar in jar的URL时，spring boot会循环处理，并缓存已经加载到的JarFile
+	 * 对于多重jar in jar，实际上是解压到了临时目录来处理，可以参考JarFileArchive里的代码
+	 * 在获取URL的InputStream时，最终获取到的是JarFile里的JarEntryData
+	 *
+	 *
+	 * @param name
+	 * @return
+	 */
 	@Override
 	public URL findResource(String name) {
 		if (this.exploded) {
