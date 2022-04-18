@@ -120,11 +120,27 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			return EMPTY_ENTRY;
 		}
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+		/**
+		 * 通过SpringFactoriesLoader加载spring.factories里的EnableAutoConfiguration
+		 */
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
 		configurations = removeDuplicates(configurations);
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
 		checkExcludedClasses(configurations, exclusions);
 		configurations.removeAll(exclusions);
+		/**
+		 * 这个getConfigurationClassFilter 方法会 new ConfigurationClassFilter
+		 * 在 new ConfigurationClassFilter的时候会调用 AutoConfigurationMetadataLoader.loadMetadata(classLoader);
+		 * 从而加载加载spring-autoconfigure-metadata.properties里的元数据，在这里我们可以看到其指定文件的位置：
+		 *
+		 *     protected static final String PATH = "META-INF/"
+		 *             + "spring-autoconfigure-metadata.properties";
+		 *
+		 * ==============
+		 *这里的filter方法会对spring.factories配置文件中的配置类 使用spring-autoconfigure-metadata.properties 中的配置条件
+		 * 进行自动过滤
+		 * 参考： https://juejin.cn/post/6844903645553623047    spring-autoconfigure-metadata.properties  和spring.factories和作用
+		 */
 		configurations = getConfigurationClassFilter().filter(configurations);
 		fireAutoConfigurationImportEvents(configurations, exclusions);
 		return new AutoConfigurationEntry(configurations, exclusions);
@@ -455,6 +471,14 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 					.collect(Collectors.toList());
 		}
 
+		/**
+		 * 从配置文件 spring-autoconfigure-metadata.properties 获得自动装配类过滤相关的配置
+		 *
+		 * 2.在代码2处主要通过SpringFactoriesLoader加载spring.factories里的EnableAutoConfiguration
+		 * 3.根据AutoConfigurationMetaData进行一次过滤：
+		 *
+		 * @return
+		 */
 		private AutoConfigurationMetadata getAutoConfigurationMetadata() {
 			if (this.autoConfigurationMetadata == null) {
 				this.autoConfigurationMetadata = AutoConfigurationMetadataLoader.loadMetadata(this.beanClassLoader);
