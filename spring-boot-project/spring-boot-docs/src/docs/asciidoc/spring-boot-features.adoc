@@ -8728,6 +8728,10 @@ Spring Boot uses an annotation processor to collect the conditions on auto-confi
 If that file is present, it is used to eagerly filter auto-configurations that do not match, which will improve startup time.
 It is recommended to add the following dependency in a module that contains auto-configurations:
 
+Spring Boot 使用注释处理器在元数据文件（`META-INF/spring-autoconfigure-metadata.properties`）中收集有关自动配置的条件。
+如果该文件存在，它将用于急切地过滤不匹配的自动配置，这将缩短启动时间。
+建议在包含自动配置的模块中添加以下依赖项：
+
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 	<dependency>
