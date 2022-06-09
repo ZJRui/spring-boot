@@ -42,11 +42,12 @@ import org.springframework.boot.loader.data.RandomAccessDataFile;
 /**
  * Extended variant of {@link java.util.jar.JarFile} that behaves in the same way but
  * offers the following additional functionality.
+ * <p>java.util.jar.JarFile 的扩展变体，其行为方式相同，但提供以下附加功能。</p>
  * <ul>
  * <li>A nested {@link JarFile} can be {@link #getNestedJarFile(ZipEntry) obtained} based
- * on any directory entry.</li>
+ * on any directory entry. 可以根据任何目录条目获取嵌套的 JarFile。</li>
  * <li>A nested {@link JarFile} can be {@link #getNestedJarFile(ZipEntry) obtained} for
- * embedded JAR files (as long as their entry is not compressed).</li>
+ * embedded JAR files (as long as their entry is not compressed).可以为嵌入的 JAR 文件获取一个嵌套的 JarFile（只要它们的条目没有被压缩）。</li>
  * </ul>
  *
  * @author Phillip Webb
@@ -54,6 +55,36 @@ import org.springframework.boot.loader.data.RandomAccessDataFile;
  * @since 1.0.0
  */
 public class JarFile extends AbstractJarFile implements Iterable<java.util.jar.JarEntry> {
+
+	/**
+	 * JarFile 对jar包封装，每个JarFileArchive都会对应一个JarFile。
+	 * JarFile 被构造的时候会解析内部结构，去获取 jar 包里的各个文件或文件夹，
+	 * 这些文件或文件夹会被封装到 Entry 中，也存储在 JarFileArchive 中。如果 Entry 是个jar，会解析成 JarFileArchive。
+	 *
+	 * JarFile是Springboot-loader 继承 JDK JarFile提供的类。
+	 *
+	 * 比如一个 JarFileArchive 对应的URL为：
+	 *
+	 * jar:file:C:\Users\Administrator\Desktop\demo\demo\target\jarlauncher-0.0.1-SNAPSHOT.jar!/
+	 *
+	 * 它对应的 JarFile 为：
+	 *
+	 * C:\Users\Administrator\Desktop\demo\demo\target\jarlauncher-0.0.1-SNAPSHOT.jar
+	 *
+	 * 这个 JarFile 有很多Entry，比如：
+	 *
+	 * META-INF/
+	 *
+	 * META-INF/MANIFEST.MF
+	 *
+	 * ......
+	 *
+	 * BOOT-INF/lib/spring-boot-starter-1.5.10.RELEASE.jar
+	 *
+	 * BOOT-INF/lib/spring-boot-1.5.10.RELEASE.jar
+	 *
+	 *
+	 */
 
 	private static final String MANIFEST_NAME = "META-INF/MANIFEST.MF";
 
@@ -78,6 +109,7 @@ public class JarFile extends AbstractJarFile implements Iterable<java.util.jar.J
 	private URL url;
 
 	private String urlString;
+
 
 	private JarFileEntries entries;
 

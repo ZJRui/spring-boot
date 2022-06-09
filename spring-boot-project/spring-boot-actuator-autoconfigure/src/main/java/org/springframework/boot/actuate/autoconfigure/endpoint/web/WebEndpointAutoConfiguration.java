@@ -85,6 +85,27 @@ public class WebEndpointAutoConfiguration {
 		return EndpointMediaTypes.DEFAULT;
 	}
 
+	/**
+	 * 将EndPoint转化为Web端点
+	 *
+	 *
+	 * 接下即为转换为web端点的过程：
+	 *
+	 * WebEndpointAutoConfiguration自动配置类会创建bean：WebEndpointDiscoverer、PathMappedEndpoints，其中pathMappedEndpoint会调用WebEndpointDiscoverer中
+	 * 的getEndpoints来初始化WebEndpointDiscoverer中的endpoint集合，核心代码即为从spring容器中获取包含@Endpoint注解的类，代码如下：
+	 *
+	 * String[] beanNames = BeanFactoryUtils.beanNamesForAnnotationIncludingAncestors(this.applicationContext, Endpoint.class);
+	 * 这样WebEndpointDiscoverer即找到了所有的endpoint，WebMvcEndpointManagementContextConfiguration自动装配类会创建WebMvcEndpointHandlerMapping实例，
+	 * 从该类的类图可以看到其最终实现了InitializingBean接口，该接口为springboot的功能扩展点，即在类的属性设置之后，会回调afterPropertiesSet方法，该方法的逻辑即为转换为
+	 * web接口的过程，具体逻辑可参考spring web的源码分析。
+	 *
+	 * @param parameterValueMapper
+	 * @param endpointMediaTypes
+	 * @param endpointPathMappers
+	 * @param invokerAdvisors
+	 * @param filters
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnMissingBean(WebEndpointsSupplier.class)
 	public WebEndpointDiscoverer webEndpointDiscoverer(ParameterValueMapper parameterValueMapper,

@@ -172,9 +172,32 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		super.doClose();
 	}
 
+	/**
+	 * Tomcat启动 ，Tomcat创建
+	 * ServletWebServerApplicationContext 作为ApplicationContext，本身重写了onRefresh方法 ，用来创建Tomcat
+	 * ServletWebServerApplicationContext.onRefresh()  (org.springframework.boot.web.servlet.context)
+	 *     AbstractApplicationContext.refresh()  (org.springframework.context.support)
+	 *
+	 */
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
 		ServletContext servletContext = getServletContext();
+		/**
+		 * createWebServer 是在 context的onRefres方法中被调用。  也就是context对象已经创建完成了。
+		 *jar运行是 创建了context，然后调用refres ->onRefresh
+		 * war部署时 是通过 SpringServletContainerInitializer(作为ServletContainerInitializer的实现类)的onStartup 中调用WebApplicationInitializer的onStartUp
+		 * SpringBoot中提供了SpringBootServletContainerInitializer 作为WebApplicationInitializer的实现类，因此会执行SpringBootServletContainerInitializer的onStartUp
+		 * 在SpringBootServletContainerInitializer的onStartUp创建 context的时候 给这个context指定了 servletContext，因此war部署时会存在ServletContext，这个时候不需要创建webServer Tomcat
+		 *
+		 * 注意这个地方有两种情况
+		 * （1）SpringBoot是 jar部署的方式
+		 *
+		 * （2）SpringBoot是非jar部署的方式
+		 *      war部署模式下，Tomcat会将ServletContext交给 ServletContainerInitializer -->webApplicationInitializer （SpringBootServletInitializer）
+		 *      在 org.springframework.boot.web.servlet.support.SpringBootServletInitializer#createRootApplicationContext(javax.servlet.ServletContext)
+		 *      方法中 会将servletContext 交给 当前的ApplicationContext。 因此这个时候ServletContext不为空，也就不需要 createTomcatServer
+		 *
+		 */
 		if (webServer == null && servletContext == null) {
 			StartupStep createWebServer = this.getApplicationStartup().start("spring.boot.webserver.create");
 			ServletWebServerFactory factory = getWebServerFactory();
@@ -188,6 +211,10 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		}
 		else if (servletContext != null) {
 			try {
+				/**
+				 * 在war部署模式下， 获取 ServletContextInitializer的实现类（一般都是RegistrationBean，用来注册Filter、Listener、 Servlet）
+				 * 然后调用其onStartUp方法， 将servlet、listener、Filter注册到ServletContext中。
+				 */
 				getSelfInitializer().onStartup(servletContext);
 			}
 			catch (ServletException ex) {

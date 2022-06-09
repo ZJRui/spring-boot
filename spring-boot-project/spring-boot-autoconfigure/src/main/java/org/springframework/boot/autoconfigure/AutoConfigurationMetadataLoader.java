@@ -38,6 +38,17 @@ final class AutoConfigurationMetadataLoader {
 	private AutoConfigurationMetadataLoader() {
 	}
 
+	/**
+	 * 我们知道在Spring及SpringBoot里按条件创建Bean的核心是Condition接口与Conditional注解,
+	 * 其实在SpringBoot里还有一种AutoConfigure也可以来过滤配置，只不过使用这种技术，能够让SpringBoot更快速的启动，那么下面我们就来看一下具体怎么实现的。
+	 *     autoconfigure Module
+	 *     SpringBoot使用一个Annotation的处理器来收集一些自动装配的条件，那么这些条件可以
+	 *     在META-INF/spring-autoconfigure-metadata.properties进行配置。SpringBoot会将收集好的@Configuration进行一次过滤进而剔除不满足条件的配置类。
+	 *
+	 *https://juejin.cn/post/6844903645553623047
+	 * @param classLoader
+	 * @return
+	 */
 	static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader) {
 		return loadMetadata(classLoader, PATH);
 	}

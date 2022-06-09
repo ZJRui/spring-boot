@@ -46,6 +46,24 @@ import org.springframework.boot.loader.jar.JarFile;
  * @since 1.0.0
  */
 public class JarFileArchive implements Archive {
+	/**
+	 * Archive的概念
+	 * archive即归档文件，这个概念在linux下比较常见
+	 * 通常就是一个tar/zip格式的压缩包
+	 * jar是zip格式
+	 * 在spring boot里，抽象出了Archive的概念。
+	 *
+	 * 一个archive可以是一个jar（JarFileArchive），也可以是一个文件目录（ExplodedArchive）。可以理解为Spring boot抽象出来的统一访问资源的层。
+	 *
+	 *
+	 * Archive 接口中定义了getURL方法，可以看到Archive有一个自己的URL，比如：
+	 *
+	 * jar:file:/tmp/target/demo-0.0.1-SNAPSHOT.jar!/
+	 * 还有一个getNestedArchives函数，这个实际返回的是demo-0.0.1-SNAPSHOT.jar/lib下面的jar的Archive列表。它们的URL是：
+	 *
+	 * jar:file:/tmp/target/demo-0.0.1-SNAPSHOT.jar!/lib/aopalliance-1.0.jar
+	 * jar:file:/tmp/target/demo-0.0.1-SNAPSHOT.jar!/lib/spring-beans-4.2.3.RELEASE.jar
+	 */
 
 	private static final String UNPACK_MARKER = "UNPACK:";
 
