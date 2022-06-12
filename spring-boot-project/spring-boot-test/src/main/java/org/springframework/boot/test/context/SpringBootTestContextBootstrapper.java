@@ -88,6 +88,7 @@ import org.springframework.util.StringUtils;
  * @see SpringBootTest
  * @see TestConfiguration
  */
+@SuppressWarnings("AlibabaRemoveCommentedCode")
 public class SpringBootTestContextBootstrapper extends DefaultTestContextBootstrapper {
 
 	private static final String[] WEB_ENVIRONMENT_CLASSES = { "javax.servlet.Servlet",
