@@ -30,6 +30,7 @@ import java.util.jar.Manifest;
  * @author Phillip Webb
  * @author Andy Wilkinson
  */
+@SuppressWarnings("jol")
 class JarEntry extends java.util.jar.JarEntry implements FileHeader {
 
 	private final int index;

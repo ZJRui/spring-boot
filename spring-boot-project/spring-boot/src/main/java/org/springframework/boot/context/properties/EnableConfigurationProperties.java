@@ -40,6 +40,28 @@ import org.springframework.context.annotation.Import;
 @Import(EnableConfigurationPropertiesRegistrar.class)
 public @interface EnableConfigurationProperties {
 
+
+	/***
+	 *
+	 * 问题@EnableConfigurationProperties 和 @ConfigurationProperties 的区别
+	 *
+	 * Enable support for @ConfigurationProperties annotated beans.
+	 * @ConfigurationProperties beans can be registered in the standard way
+	 * (for example using @Bean methods) or, for convenience, can be specified directly on this annotation.
+	 *
+	 * @EnableCopnfigurationProperties 用来支持 被@ConfigurationProperties  注解的bean。
+	 *
+	 * 被@ConfigurationProperties  注解的bean 可以通过 @Bean的方式注入到容器中，这也就是说 如果你不使用@Bean标记，那么默认
+	 * 情况下@ConfigurationProperties  不会将这个bean注入到容器中。
+	 *
+	 * 为了 解决 将Bean注入到容器中 可以使用@EnableCopnfigurationProperties
+	 *
+	 *
+	 *
+	 *
+	 */
+
+
 	/**
 	 * The bean name of the configuration properties validator.
 	 * @since 2.2.0

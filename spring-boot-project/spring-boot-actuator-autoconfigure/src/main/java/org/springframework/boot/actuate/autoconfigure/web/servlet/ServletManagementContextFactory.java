@@ -44,6 +44,17 @@ class ServletManagementContextFactory implements ManagementContextFactory {
 	@Override
 	public ConfigurableWebServerApplicationContext createManagementContext(ApplicationContext parent,
 			Class<?>... configClasses) {
+		/**
+		 *
+		 * springboot actuator用于springboot项目健康监控，默认端口和应用程序相同，这时它们使用同一个应用程序上下文及tomcat容器；
+		 * 当management.server.port端口和应用程序不同时，actuator的应用上下文是系统的子上下文，使用独立的tomcat容器，
+		 * 这时如果我想拦截actuator应用程序的端点、管理actuator的容器及bean又该如何下手呢？
+		 *
+		 *
+		 *
+		 * ServletManagementContextAutoConfiguration这个类中 会@Bean注入一个ServletManagementContextFactory
+		 *
+		 */
 		AnnotationConfigServletWebServerApplicationContext child = new AnnotationConfigServletWebServerApplicationContext();
 		child.setParent(parent);
 		List<Class<?>> combinedClasses = new ArrayList<>(Arrays.asList(configClasses));

@@ -63,6 +63,9 @@ public abstract class ManagementWebServerFactoryCustomizer<T extends Configurabl
 
 	@Override
 	public final void customize(T factory) {
+		/**
+		 * 获取 ManagementServerProperties这个bean
+		 */
 		ManagementServerProperties managementServerProperties = BeanFactoryUtils
 				.beanOfTypeIncludingAncestors(this.beanFactory, ManagementServerProperties.class);
 		// Customize as per the parent context first (so e.g. the access logs go to

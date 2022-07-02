@@ -37,6 +37,9 @@ import org.springframework.util.StringUtils;
  */
 @ConfigurationProperties(prefix = "management.server", ignoreUnknownFields = true)
 public class ManagementServerProperties {
+	/**
+	 * management.server.port =9000 actuator管理端口
+	 */
 
 	/**
 	 * Management endpoint HTTP port (uses the same port as the application by default).

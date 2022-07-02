@@ -28,6 +28,16 @@ public enum ManagementPortType {
 
 	/**
 	 * The management port has been disabled.
+	 *
+	 * @ConditionalOnManagementPort
+	 * 仅当 management.server.port 条件与 server.port 具体某种关系时加载bean。
+	 *
+	 * 有三种关系类型：
+	 *
+	 * ManagementPortType.DISABLED：禁用或没定义管理端口
+	 * ManagementPortType.SAME：服务端口与管理端口相同
+	 * ManagementPortType.DIFFERENT：服务与管理端口不同
+	 *
 	 */
 	DISABLED,
 
@@ -38,6 +48,10 @@ public enum ManagementPortType {
 
 	/**
 	 * The management port and server port are different.
+	 *
+	 *  springboot actuator用于springboot项目健康监控， 默认端口和应用程序相同。 这时他们使用同一个应用程序上下文以及tomcat容器。
+	 *  当managment.server.port 端口和应用程序不同时，actuator的应用程序时系统的子上下文，使用独立的tomcat容器
+	 *
 	 */
 	DIFFERENT;
 
@@ -52,6 +66,10 @@ public enum ManagementPortType {
 	 */
 	public static ManagementPortType get(Environment environment) {
 		Integer managementPort = getPortProperty(environment, "management.server.");
+		/**
+		 * 将management 端口设置为-1
+		 * management.server.port=-1
+		 */
 		if (managementPort != null && managementPort < 0) {
 			return DISABLED;
 		}

@@ -119,6 +119,8 @@ public class ManagementContextAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	//这里表示当 management.server.port的健康检查端口和项目端口不同，就会创建一个 @Configuration 标注的 DifferentManagementContextConfiguration配置类
+	//而且这个配置类 使用了带有参数的构造器，构造参数的构造器中的applicationContext
 	@ConditionalOnManagementPort(ManagementPortType.DIFFERENT)
 	static class DifferentManagementContextConfiguration implements ApplicationListener<WebServerInitializedEvent> {
 

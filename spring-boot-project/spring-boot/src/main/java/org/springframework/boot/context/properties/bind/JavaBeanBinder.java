@@ -92,11 +92,20 @@ class JavaBeanBinder implements DataObjectBinder {
 		ResolvableType type = property.getType();
 		Supplier<Object> value = property.getValue(beanSupplier);
 		Annotation[] annotations = property.getAnnotations();
+		/**
+		 * 获取指定的属性值，propertyBinder对象中会持有PropertySource
+		 * propertyName 不一定时全称，比如management.server.port ,可能时port这样一个短属性名称
+		 *         //这里就是上面提到的回调函数，会递归对象属性赋值
+		 */
 		Object bound = propertyBinder.bindProperty(propertyName,
 				Bindable.of(type).withSuppliedValue(value).withAnnotations(annotations));
 		if (bound == null) {
 			return false;
 		}
+		//判断有setter方法，调用赋值，用的是java 反射技术
+		//这里的property 就是属性名， 比如对于ManagementServerProperties 这个类，首先他使用了@Configuration标记，就会有
+		//在spring中有这样一个Bean对象，然后根据对象中的属性名称， 从容器中的propertysource中提取对应的属性。 这里的property就是 Bean对象的
+		//属性名称
 		if (property.isSettable()) {
 			property.setValue(beanSupplier, bound);
 		}

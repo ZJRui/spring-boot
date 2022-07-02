@@ -38,6 +38,9 @@ import org.springframework.util.ReflectionUtils;
  * support generically typed callbacks where {@link ClassCastException class cast
  * exceptions} need to be dealt with due to class erasure.
  *
+ * 可用于以安全方式调用 lambda 的实用程序。
+ * 主要设计用于帮助支持由于类擦除而需要处理类强制转换异常的通用类型回调。
+ *
  * @author Phillip Webb
  * @since 2.0.0
  */
