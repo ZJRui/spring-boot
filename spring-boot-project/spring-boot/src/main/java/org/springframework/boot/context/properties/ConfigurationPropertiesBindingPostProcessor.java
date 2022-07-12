@@ -53,6 +53,37 @@ public class ConfigurationPropertiesBindingPostProcessor
 	 * 获取配置文件中的prefix，和注解对象的类成员变量
 	 * ————————————————
 	 *
+	 *
+	 *   可以看到该处理器实现了比较重要的 BeanProcessor、InitializingBean、ApplicationContextAware，
+	 *   利用ApplicationContextAware给字段applicationContext赋值，利用InitializingBean给registry和binder赋值、利用BeanPostProcessor来处理属性对象属性值绑定。
+	 *
+	 *    整个绑定过程简单说就是ConfigurationPropertiesBindingPostProcessor将属性绑定委托给ConfigurationPropertiesBinder，
+	 *    ConfigurationPropertiesBinder利用应用上下文（ApplicationContext）的环境（Environment）的（PropertySources->MutablePropertySources），
+	 *    协调其它组件进行属性绑定，{Environment提供属性值集合，针对有@ConfigurationProperties的bean进行属性值绑定}，
+	 *    当然详细来说还有ConfigurationPropertiesBinder是如何进行属性绑定的？其实ConfigurationPropertiesBinder就是个协调者，
+	 *    真正进行属性绑定的也不是它，它创建BindHandler、Binder，让Binder根据不同的属性值类型（Value、bean）让
+	 *    DataObjectBinder（ValueObjectBinder、JavaBeanBinder）去进行绑定，最终交给BindHandler来进行绑定，
+	 *    其实看到ConfigurationPropertiesBinder的PropertySources字段的时候，也就大概知道绑定核心原理了，就是到环境中找属性资源给类赋值。
+	 *
+	 *     正常的pojo属性赋值spring提供了依赖注入的方式，@ConfigurationProperties标注的属性类spring提供了可配置方式。
+	 *     那接下来可能还要看看application.yml这样的配置文件是如何映射成spring的Enviroment的？我们知道Environment是
+	 *     profile和propertySource的抽象，这样当我们知道了环境也就知道了，当前**的哪个配置文件、哪些属性资源是可获得的。
+	 *
+	 *    springboot应用构建时会准备环境，准备环境时会用多播器发布一个事件ApplicationEnvironmentPreparedEvent，
+	 *    boot的应用监听器ApplicationListener会监听应用事件，该事件的监听器ConfigFileApplicationListener监听
+	 *    到该事件会让EnvironmentPostProcessor进行相应处理，EnvironmentPostProcessor.Loader去load，具体点就是PropertySourceLoader
+	 *    到默认的DEFAULT_SEARCH_LOCATIONS（classpath:/,classpath:/config/,file:./,file:./config/ /,file:./config/）
+	 *    和指定的CONFIG_LOCATION_PROPERTY位置去加载PropertySource到Environment中。
+	 *
+	 *
+	 *思考 :我们知道springcloud的配置管理，核心点是客户端从服务端取得配置信息，服务端对配置信息进行持久化
+	 * （以某种方式落磁盘如数据库等等），那么取得的配置客户端作何处理呢，不难猜测应该是要映射到环境中，
+	 * 也就用到了MutablePropertySources，到底猜测的是否正确，可以后续分析一下。
+	 *
+	 *
+	 *
+	 *
+	 *
 	 */
 	public static final String BEAN_NAME = ConfigurationPropertiesBindingPostProcessor.class.getName();
 
@@ -90,7 +121,13 @@ public class ConfigurationPropertiesBindingPostProcessor
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 
 		/**
+		 *
 		 * 这里使用了 ConfigurationPropertiesBean
+		 *
+		 * 注意：这里的binder方法最终 还是会调用 ConfigurationPropertiesBinder对象的bind方法。
+		 * 但是他的bind方法接收的参数是ConfigurationPropertiesBean。 而这里的postProcessBeforeInitialization
+		 * 方法接收的参数是 Bean对象。 这里的 get方法会创建一个 ConfigurationPropertiesBean对象。
+		 *
 		 */
 		bind(ConfigurationPropertiesBean.get(this.applicationContext, bean, beanName));
 		return bean;
@@ -126,6 +163,9 @@ public class ConfigurationPropertiesBindingPostProcessor
 	 */
 	public static void register(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "Registry must not be null");
+		/**
+		 * 注册 ConfigurationPropertiesBindingPostProcessor 后置处理器
+		 */
 		if (!registry.containsBeanDefinition(BEAN_NAME)) {
 			BeanDefinition definition = BeanDefinitionBuilder
 					.genericBeanDefinition(ConfigurationPropertiesBindingPostProcessor.class,
@@ -134,6 +174,11 @@ public class ConfigurationPropertiesBindingPostProcessor
 			definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(BEAN_NAME, definition);
 		}
+		/**
+		 *
+		 * 1.注册一个ConfigurationPropertiesBinder.Factory
+		 * 2.注册 一个ConfigurationPropertiesBinder
+		 */
 		ConfigurationPropertiesBinder.register(registry);
 	}
 

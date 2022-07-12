@@ -68,6 +68,12 @@ import org.springframework.boot.configurationprocessor.metadata.ItemMetadata;
 		ConfigurationMetadataAnnotationProcessor.WEB_ENDPOINT_ANNOTATION,
 		"org.springframework.context.annotation.Configuration" })
 public class ConfigurationMetadataAnnotationProcessor extends AbstractProcessor {
+	/**
+	 * 这里要多说一句，spring-boot-configuration-processor这个依赖之所以引入，是要解决属性类编译报错问题，
+	 * 这个做编译时注解处理的，javac提供的功能，具体实现类是ConfigurationMetadataAnnotationProcessor，
+	 * 详细可参考javax.annotation.processing.Processor的API做个自定义注解处理器实现，
+	 * 这里解决@ConfigurationProperties。
+	 */
 
 	static final String ADDITIONAL_METADATA_LOCATIONS_OPTION = "org.springframework.boot.configurationprocessor.additionalMetadataLocations";
 

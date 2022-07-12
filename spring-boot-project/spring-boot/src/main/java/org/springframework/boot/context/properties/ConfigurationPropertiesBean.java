@@ -58,6 +58,11 @@ import org.springframework.validation.annotation.Validated;
  * @see #get(ApplicationContext, Object, String)
  */
 public final class ConfigurationPropertiesBean {
+	/**
+	 * 提供对@ConfigurationProperties bean详细信息的访问，不管注释是直接使用的还是在@Bean工厂方法上使用的。
+	 * 这个类可以用于访问ApplicationContext中的所有配置属性bean，或者根据具体情况访问单个bean(例如，
+	 * 在BeanPostProcessor中)。
+	 */
 
 	private final String name;
 
@@ -263,6 +268,7 @@ public final class ConfigurationPropertiesBean {
 				: new Annotation[] { annotation };
 		ResolvableType bindType = (factory != null) ? ResolvableType.forMethodReturnType(factory)
 				: ResolvableType.forClass(type);
+
 		Bindable<Object> bindTarget = Bindable.of(bindType).withAnnotations(annotations);
 		if (instance != null) {
 			bindTarget = bindTarget.withExistingValue(instance);

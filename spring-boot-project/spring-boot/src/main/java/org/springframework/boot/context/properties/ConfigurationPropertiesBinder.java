@@ -82,6 +82,27 @@ class ConfigurationPropertiesBinder {
 
 	private volatile Binder binder;
 
+	/**
+	 * 对ConfigurationPropertiesBinder 我们要注意 几个问题：
+	 * （1）该对象什么时候被创建，或者什么时候 注入到了Spring容器中。
+	 * 他是通过Registrar来注册BeanDefinition。
+	 * 注册BeanDefinition:org.springframework.boot.context.properties.EnableConfigurationPropertiesRegistrar#registerBeanDefinitions(org.springframework.core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
+	 * 然后在 ConfigurationPropertiesBindingPostProcessor 中 afterPropertiesSet 回调中 获取这个 ConfigurationPropertiesBinder 保存
+	 * 到PostProcessor的binder属性中
+	 *
+	 * （2）ConfigurationPropertiesBinder并不是真正意义上的binder，    真正的Binder 对象是 Binder类的对象。 ConfigurationPropertiesBinder没有继承自Binder类
+	 *
+	 * （3）ConfigurationPropertiesBinder 内部存在Binder属性， 使用Binder属性对象的时候 需要提供  PropertySource 给Binder对象使用。
+	 * 因此 ConfigurationPropertiesBinder 对象内部会使用 applicationContext来获取propertySource。 比如这种方式
+	 * Environment environment = this.applicationContext.getEnvironment();
+	 * 		if (environment instanceof ConfigurableEnvironment) {
+	 * 			return ((ConfigurableEnvironment) environment).getPropertySources();
+	 *    }
+	 *
+	 * (4) Binder属性的 创建：在bind方法中通过getBinder 方法来创建一个Binder对象
+	 *
+	 * @param applicationContext
+	 */
 	ConfigurationPropertiesBinder(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 		this.propertySources = new PropertySourcesDeducer(applicationContext).getPropertySources();
@@ -90,9 +111,13 @@ class ConfigurationPropertiesBinder {
 	}
 
 	BindResult<?> bind(ConfigurationPropertiesBean propertiesBean) {
+
 		Bindable<?> target = propertiesBean.asBindTarget();
 		ConfigurationProperties annotation = propertiesBean.getAnnotation();
 		BindHandler bindHandler = getBindHandler(target, annotation);
+		/**
+		 * 通过getBinder方法创建一个Binder对象
+		 */
 		return getBinder().bind(annotation.prefix(), target, bindHandler);
 	}
 
@@ -173,6 +198,7 @@ class ConfigurationPropertiesBinder {
 	}
 
 	private Iterable<ConfigurationPropertySource> getConfigurationPropertySources() {
+		//this.propertiySources 是从ApplicationContext 中提取出来的
 		return ConfigurationPropertySources.from(this.propertySources);
 	}
 
@@ -192,6 +218,10 @@ class ConfigurationPropertiesBinder {
 	}
 
 	static void register(BeanDefinitionRegistry registry) {
+		/**
+		 * register 方法是在 EnableConfigurationPropertiesRegistrar 的registerBeanDefinitions中被调用 的
+		 * EnableConfigurationPropertiesRegistrar是 ImportBeanDefinitionRegistrar 实现类
+		 */
 		if (!registry.containsBeanDefinition(FACTORY_BEAN_NAME)) {
 			AbstractBeanDefinition definition = BeanDefinitionBuilder
 					.genericBeanDefinition(ConfigurationPropertiesBinder.Factory.class,
@@ -200,6 +230,9 @@ class ConfigurationPropertiesBinder {
 			definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(ConfigurationPropertiesBinder.FACTORY_BEAN_NAME, definition);
 		}
+		/**
+		 * 这里注册一个 bean，  注册的时候指定了工厂函数，通过工厂函数来创建Bean
+		 */
 		if (!registry.containsBeanDefinition(BEAN_NAME)) {
 			AbstractBeanDefinition definition = BeanDefinitionBuilder
 					.genericBeanDefinition(ConfigurationPropertiesBinder.class,
@@ -212,6 +245,12 @@ class ConfigurationPropertiesBinder {
 	}
 
 	static ConfigurationPropertiesBinder get(BeanFactory beanFactory) {
+		/**
+		 * 在
+		 * org.springframework.boot.context.properties.ConfigurationPropertiesBinder#
+		 * register(org.springframework.beans.factory.support.BeanDefinitionRegistry)
+		 * 中注册了一个 这样Bean_name的bean
+		 */
 		return beanFactory.getBean(BEAN_NAME, ConfigurationPropertiesBinder.class);
 	}
 
