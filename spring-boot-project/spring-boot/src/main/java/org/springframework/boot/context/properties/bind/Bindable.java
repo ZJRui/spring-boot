@@ -42,17 +42,25 @@ import org.springframework.util.ObjectUtils;
  * @see Bindable#of(ResolvableType)
  */
 public final class Bindable<T> {
+	/**
+	 * Bindable是指可由Binder绑定的源（如：基本数据类型，java对象、List、数组等等），也可以理解为可以绑定到指定的属性配置的值。
+	 */
+
 
 	private static final Annotation[] NO_ANNOTATIONS = {};
 
 	private static final EnumSet<BindRestriction> NO_BIND_RESTRICTIONS = EnumSet.noneOf(BindRestriction.class);
 
+	//要绑定项的类型
 	private final ResolvableType type;
 
+	//要绑定项的包装类型
 	private final ResolvableType boxedType;
 
+	//要绑定的数据值的提供者，是一个函数式接口
 	private final Supplier<T> value;
 
+	//可能影响绑定的任何关联注解
 	private final Annotation[] annotations;
 
 	private final EnumSet<BindRestriction> bindRestrictions;
@@ -68,6 +76,7 @@ public final class Bindable<T> {
 
 	/**
 	 * Return the type of the item to bind.
+	 * 返回要绑定的项的类型。
 	 * @return the type being bound
 	 */
 	public ResolvableType getType() {
@@ -76,6 +85,9 @@ public final class Bindable<T> {
 
 	/**
 	 * Return the boxed type of the item to bind.
+	 *
+	 * 返回要绑定的项的盒装类型。
+	 *
 	 * @return the boxed type for the item being bound
 	 */
 	public ResolvableType getBoxedType() {
@@ -92,6 +104,8 @@ public final class Bindable<T> {
 
 	/**
 	 * Return any associated annotations that could affect binding.
+	 * 返回任何可能影响绑定的相关注释。
+	 *
 	 * @return the associated annotations
 	 */
 	public Annotation[] getAnnotations() {
@@ -121,6 +135,7 @@ public final class Bindable<T> {
 	 * @since 2.5.0
 	 */
 	public boolean hasBindRestriction(BindRestriction bindRestriction) {
+		//如果添加了指定的绑定限制，则返回true。
 		return this.bindRestrictions.contains(bindRestriction);
 	}
 
@@ -165,6 +180,8 @@ public final class Bindable<T> {
 
 	/**
 	 * Create an updated {@link Bindable} instance with the specified annotations.
+	 * //使用指定的注释创建一个更新的Bindable实例。
+	 *
 	 * @param annotations the annotations
 	 * @return an updated {@link Bindable}
 	 */
@@ -218,6 +235,7 @@ public final class Bindable<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Bindable<T> ofInstance(T instance) {
+		// 创建指定实例类型的新Bindable，其现有值等于该实例。
 		Assert.notNull(instance, "Instance must not be null");
 		Class<T> type = (Class<T>) instance.getClass();
 		return of(type).withExistingValue(instance);
@@ -302,6 +320,7 @@ public final class Bindable<T> {
 
 		/**
 		 * Do not bind direct {@link ConfigurationProperty} matches.
+		 * 不要绑定直接的ConfigurationProperty匹配项。
 		 */
 		NO_DIRECT_PROPERTY
 

@@ -46,6 +46,13 @@ public class ConfigurationPropertiesBindingPostProcessor
 
 	/**
 	 * The bean name that this post-processor is registered with.
+	 *
+	 * Spring 初始化Bean 的时候会调用 bean后置处理 ConfigurationPropertiesBindingPostProcessor
+	 * 的postProcessBeforeInitialization方法
+	 * 这里其实就是我们上面猜想的注解处理器，它会处理ConfigurationProperties注解
+	 * 获取配置文件中的prefix，和注解对象的类成员变量
+	 * ————————————————
+	 *
 	 */
 	public static final String BEAN_NAME = ConfigurationPropertiesBindingPostProcessor.class.getName();
 
@@ -65,6 +72,12 @@ public class ConfigurationPropertiesBindingPostProcessor
 		// We can't use constructor injection of the application context because
 		// it causes eager factory bean initialization
 		this.registry = (BeanDefinitionRegistry) this.applicationContext.getAutowireCapableBeanFactory();
+		// 这里使用了 ConfigurationPropertiesBinder
+		/**
+		 * afterPropertiesSet方法在Bean创建时被调用，保证内部变量configurationPropertiesBinder被初始化，
+		 * 这个binder类就是使prefix与propertyBean进行值绑定的关键工具类
+		 *
+		 */
 		this.binder = ConfigurationPropertiesBinder.get(this.applicationContext);
 	}
 
@@ -75,6 +88,10 @@ public class ConfigurationPropertiesBindingPostProcessor
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+
+		/**
+		 * 这里使用了 ConfigurationPropertiesBean
+		 */
 		bind(ConfigurationPropertiesBean.get(this.applicationContext, bean, beanName));
 		return bean;
 	}
@@ -86,6 +103,9 @@ public class ConfigurationPropertiesBindingPostProcessor
 		Assert.state(bean.getBindMethod() == BindMethod.JAVA_BEAN, "Cannot bind @ConfigurationProperties for bean '"
 				+ bean.getName() + "'. Ensure that @ConstructorBinding has not been applied to regular bean");
 		try {
+			/**
+			 *
+			 */
 			this.binder.bind(bean);
 		}
 		catch (Exception ex) {
