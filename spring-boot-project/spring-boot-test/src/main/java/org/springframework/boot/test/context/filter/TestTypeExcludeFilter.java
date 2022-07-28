@@ -32,6 +32,9 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
  */
 class TestTypeExcludeFilter extends TypeExcludeFilter {
 
+	/**
+	 * TypeExcludeFilter用来排除带有@TestComponent注释的类以及测试的内部类。
+	 */
 	private static final String[] CLASS_ANNOTATIONS = { "org.junit.runner.RunWith",
 			"org.junit.jupiter.api.extension.ExtendWith", "org.junit.platform.commons.annotation.Testable",
 			"org.testng.annotations.Test" };
