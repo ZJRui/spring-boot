@@ -154,6 +154,7 @@ import org.springframework.util.StringUtils;
  * @see #run(Class[], String[])
  * @see #SpringApplication(Class...)
  */
+@SuppressWarnings("all")
 public class SpringApplication {
 
 	/**
@@ -452,6 +453,134 @@ public class SpringApplication {
 		DefaultPropertiesPropertySource.moveToEnd(environment);
 		Assert.state(!environment.containsProperty("spring.main.environment-prefix"),
 				"Environment prefix cannot be set via properties.");
+		/**
+		 * 什么意思呢？
+		 * 就是说上面 configureEnvironment之后，会加载 配置文件中的属性，有些属性 比如 spring.main.allow-bean-definition-overriding=true
+		 * 在配置文件中配置了，但是SpringApplication 中也有一个 allowBeanDefinitionOverriding属性，默认为false，且在prepareContext 中会
+		 * 将这个属性设置到容器身上。因此 如何将 Environemnt中的配置属性 更新到SpringApplication 就是一个关键问题了。bindToSpringApplication就是完成这件事
+		 * if (beanFactory instanceof DefaultListableBeanFactory) {
+		 * 			((DefaultListableBeanFactory) beanFactory)
+		 * 					.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
+		 *  }
+		 *
+		 *
+		 * setAllowBeanDefinitionOverriding:1052, SpringApplication (org.springframework.boot)
+		 * invoke0:-1, NativeMethodAccessorImpl (sun.reflect)
+		 * invoke:62, NativeMethodAccessorImpl (sun.reflect)
+		 * invoke:43, DelegatingMethodAccessorImpl (sun.reflect)
+		 * invoke:498, Method (java.lang.reflect)
+		 * setValue:372, JavaBeanBinder$BeanProperty (org.springframework.boot.context.properties.bind)
+		 * bind:110, JavaBeanBinder (org.springframework.boot.context.properties.bind)
+		 * bind:83, JavaBeanBinder (org.springframework.boot.context.properties.bind)
+		 * bind:59, JavaBeanBinder (org.springframework.boot.context.properties.bind)
+		 * lambda$bindDataObject$5:514, Binder (org.springframework.boot.context.properties.bind)
+		 * get:-1, 137533655 (org.springframework.boot.context.properties.bind.Binder$$Lambda$340)
+		 * withIncreasedDepth:628, Binder$Context (org.springframework.boot.context.properties.bind)
+		 * withDataObject:614, Binder$Context (org.springframework.boot.context.properties.bind)
+		 * access$300:575, Binder$Context (org.springframework.boot.context.properties.bind)
+		 * bindDataObject:512, Binder (org.springframework.boot.context.properties.bind)
+		 * bindObject:452, Binder (org.springframework.boot.context.properties.bind)
+		 * bind:381, Binder (org.springframework.boot.context.properties.bind)
+		 * bind:370, Binder (org.springframework.boot.context.properties.bind)
+		 * bind:300, Binder (org.springframework.boot.context.properties.bind)
+		 * bind:261, Binder (org.springframework.boot.context.properties.bind)
+		 * bindToSpringApplication:660, SpringApplication (org.springframework.boot)
+		 * prepareEnvironment:455, SpringApplication (org.springframework.boot)
+		 * run:406, SpringApplication (org.springframework.boot)
+		 * loadContext:123, SpringBootContextLoader (org.springframework.boot.test.context)
+		 * loadContextInternal:99, DefaultCacheAwareContextLoaderDelegate (org.springframework.test.context.cache)
+		 * loadContext:124, DefaultCacheAwareContextLoaderDelegate (org.springframework.test.context.cache)
+		 * getApplicationContext:124, DefaultTestContext (org.springframework.test.context.support)
+		 * injectDependencies:118, DependencyInjectionTestExecutionListener (org.springframework.test.context.support)
+		 * prepareTestInstance:83, DependencyInjectionTestExecutionListener (org.springframework.test.context.support)
+		 * prepareTestInstance:43, SpringBootDependencyInjectionTestExecutionListener (org.springframework.boot.test.autoconfigure)
+		 * prepareTestInstance:244, TestContextManager (org.springframework.test.context)
+		 * postProcessTestInstance:138, SpringExtension (org.springframework.test.context.junit.jupiter)
+		 * lambda$invokeTestInstancePostProcessors$6:350, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * execute:-1, 115945887 (org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$$Lambda$354)
+		 * executeAndMaskThrowable:355, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * lambda$invokeTestInstancePostProcessors$7:350, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * accept:-1, 938199512 (org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$$Lambda$353)
+		 * accept:-1, 1241529534 (java.util.stream.StreamSpliterators$WrappingSpliterator$$Lambda$238)
+		 * accept:193, ReferencePipeline$3$1 (java.util.stream)
+		 * accept:175, ReferencePipeline$2$1 (java.util.stream)
+		 * forEachRemaining:1384, ArrayList$ArrayListSpliterator (java.util)
+		 * copyInto:482, AbstractPipeline (java.util.stream)
+		 * wrapAndCopyInto:472, AbstractPipeline (java.util.stream)
+		 * forEachRemaining:312, StreamSpliterators$WrappingSpliterator (java.util.stream)
+		 * forEachRemaining:743, Streams$ConcatSpliterator (java.util.stream)
+		 * forEachRemaining:742, Streams$ConcatSpliterator (java.util.stream)
+		 * forEach:580, ReferencePipeline$Head (java.util.stream)
+		 * invokeTestInstancePostProcessors:349, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * lambda$instantiateAndPostProcessTestInstance$4:270, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * execute:-1, 1377301456 (org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$$Lambda$352)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * instantiateAndPostProcessTestInstance:269, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * lambda$testInstancesProvider$2:259, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * get:-1, 481553464 (org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$$Lambda$345)
+		 * orElseGet:267, Optional (java.util)
+		 * lambda$testInstancesProvider$3:258, ClassBasedTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * getTestInstances:-1, 79782883 (org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$$Lambda$249)
+		 * getTestInstances:31, TestInstancesProvider (org.junit.jupiter.engine.execution)
+		 * lambda$prepare$0:101, TestMethodTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * execute:-1, 1627883152 (org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor$$Lambda$344)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * prepare:100, TestMethodTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * prepare:65, TestMethodTestDescriptor (org.junit.jupiter.engine.descriptor)
+		 * lambda$prepare$1:111, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:-1, 1101048445 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$196)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * prepare:111, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:79, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * accept:-1, 2130192211 (org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService$$Lambda$211)
+		 * forEach:1259, ArrayList (java.util)
+		 * invokeAll:38, SameThreadHierarchicalTestExecutorService (org.junit.platform.engine.support.hierarchical)
+		 * lambda$executeRecursively$5:143, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:-1, 1561063579 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$207)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * lambda$executeRecursively$7:129, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * invoke:-1, 613298587 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$206)
+		 * around:137, Node (org.junit.platform.engine.support.hierarchical)
+		 * lambda$executeRecursively$8:127, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:-1, 402009651 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$205)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * executeRecursively:126, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:84, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * accept:-1, 2130192211 (org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService$$Lambda$211)
+		 * forEach:1259, ArrayList (java.util)
+		 * invokeAll:38, SameThreadHierarchicalTestExecutorService (org.junit.platform.engine.support.hierarchical)
+		 * lambda$executeRecursively$5:143, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:-1, 1561063579 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$207)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * lambda$executeRecursively$7:129, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * invoke:-1, 613298587 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$206)
+		 * around:137, Node (org.junit.platform.engine.support.hierarchical)
+		 * lambda$executeRecursively$8:127, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:-1, 402009651 (org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda$205)
+		 * execute:73, ThrowableCollector (org.junit.platform.engine.support.hierarchical)
+		 * executeRecursively:126, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * execute:84, NodeTestTask (org.junit.platform.engine.support.hierarchical)
+		 * submit:32, SameThreadHierarchicalTestExecutorService (org.junit.platform.engine.support.hierarchical)
+		 * execute:57, HierarchicalTestExecutor (org.junit.platform.engine.support.hierarchical)
+		 * execute:51, HierarchicalTestEngine (org.junit.platform.engine.support.hierarchical)
+		 * execute:108, EngineExecutionOrchestrator (org.junit.platform.launcher.core)
+		 * execute:88, EngineExecutionOrchestrator (org.junit.platform.launcher.core)
+		 * lambda$execute$0:54, EngineExecutionOrchestrator (org.junit.platform.launcher.core)
+		 * accept:-1, 1019298652 (org.junit.platform.launcher.core.EngineExecutionOrchestrator$$Lambda$156)
+		 * withInterceptedStreams:67, EngineExecutionOrchestrator (org.junit.platform.launcher.core)
+		 * execute:52, EngineExecutionOrchestrator (org.junit.platform.launcher.core)
+		 * execute:96, DefaultLauncher (org.junit.platform.launcher.core)
+		 * execute:75, DefaultLauncher (org.junit.platform.launcher.core)
+		 * startRunnerWithArgs:71, JUnit5IdeaTestRunner (com.intellij.junit5)
+		 * execute:38, IdeaTestRunner$Repeater$1 (com.intellij.rt.junit)
+		 * repeat:11, TestsRepeater (com.intellij.rt.execution.junit)
+		 * startRunnerWithArgs:35, IdeaTestRunner$Repeater (com.intellij.rt.junit)
+		 * prepareStreamsAndStart:235, JUnitStarter (com.intellij.rt.junit)
+		 * main:54, JUnitStarter (com.intellij.rt.junit)
+		 *
+		 *
+		 *
+		 */
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {
 			environment = new EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment,
@@ -587,6 +716,16 @@ public class SpringApplication {
 	 * @see #configurePropertySources(ConfigurableEnvironment, String[])
 	 */
 	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
+		/**
+		 * configureEnvironment方法按照environment.setConversionService -> configurePropertySources ->
+		 * configureProfiles的顺序分别对属性源或配置文件进行细粒度控制.
+		 * addConversionService是SpringApplication的成员字段，默认值为true。
+		 * ConfigurableEnvironment的void setConversionService(ConfigurableConversionService
+		 * conversionService)方法继承于ConfigurablePropertyResolver接口， 该接口是PropertyResolver类型都将实现的配置接口。
+		 * 提供用于访问和自定义将属性值从一种类型转换为另一种类型时使用的ConversionService的工具。
+		 * PropertyResolver是用于针对任何底层源解析属性的接口。
+		 *
+		 */
 		if (this.addConversionService) {
 			environment.setConversionService(new ApplicationConversionService());
 		}

@@ -53,6 +53,13 @@ import org.springframework.util.StringValueResolver;
  */
 public class ApplicationConversionService extends FormattingConversionService {
 
+	/**
+	 * ApplicationConversionService是FormattingConversionService的一种特殊化，
+	 * 默认配置了适用于大多数 Spring Boot 应用程序的转换器和格式化程序。ApplicationConversionService专为直接实例化而设计，
+	 * 但也公开了静态addApplicationConverters和addApplicationFormatters(FormatterRegistry)实用程序方法，
+	 * 以便针对注册表实例临时使用。ApplicationConversionService构造方法如下：
+	 *
+	 */
 	private static volatile ApplicationConversionService sharedInstance;
 
 	private final boolean unmodifiable;

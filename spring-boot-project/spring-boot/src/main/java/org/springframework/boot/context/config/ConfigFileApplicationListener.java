@@ -117,7 +117,20 @@ import org.springframework.util.StringUtils;
  * {@link ConfigDataEnvironmentPostProcessor}
  */
 @Deprecated
+@SuppressWarnings("all")
 public class ConfigFileApplicationListener implements EnvironmentPostProcessor, SmartApplicationListener, Ordered {
+	/**
+	 * EnvironmentPostProcessor，通过从已知的文件位置加载属性来配置上下文环境。默认情况下，属性将从'应用程序加载。属性“和/或”应用程序。以下位置的Yml '文件:
+	 * 文件:/ config /
+	 * 文件:/ config / * /
+	 * 文件:。/
+	 * 类路径:配置/
+	 * 类路径:
+	 * 该列表按优先级排序(在列表中较高位置定义的属性将重写在较低位置定义的属性)。
+	 * 可以使用setSearchLocations(String)和setSearchNames(String)指定替代搜索位置和名称。
+	 * 附加文件也将基于活动概要文件加载。例如，如果一个“web”配置文件是活跃的应用程序web。属性”和“即web。Yml '会被考虑。
+	 * 'spring.config.name'属性可以用来指定要加载的另一个名称，以及'spring.config.name'属性。属性可用于指定可选的搜索位置或特定文件。
+	 */
 
 	// Note the order is from least to most specific (last one wins)
 	private static final String DEFAULT_SEARCH_LOCATIONS = "classpath:/,classpath:/config/,file:./,file:./config/*/,file:./config/";

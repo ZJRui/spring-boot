@@ -115,6 +115,15 @@ public @interface SpringBootTest {
 	 * {@link SpringBootConfiguration @SpringBootConfiguration} search.
 	 * @see ContextConfiguration#classes()
 	 * @return the component classes used to load the application context
+	 *
+	 * <p>
+	 * 用于加载ApplicationContext的带注释的类。也可以使用@ContextConfiguration(classes=…)来指定。
+	 * 如果没有定义显式类，测试将在返回到SpringBootConfiguration搜索之前查找嵌套的@Configuration类。
+	 * 返回:
+	 * 用于加载应用程序上下文的带注释的类
+	 * 参见:
+	 * ContextConfiguration.classes ()
+	 * </p>
 	 */
 	Class<?>[] classes() default {};
 
