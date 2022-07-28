@@ -356,6 +356,16 @@ public class SpringBootTestContextBootstrapper extends DefaultTestContextBootstr
 		 * 那么这个时候我们就认为 已经为测试类配置了 有效的配置类。 不在寻找@SpringBootConfiguration配置类
 		 */
 		if (containsNonTestComponent(classes) || mergedConfig.hasLocations()) {
+			/**
+			 * containsNonTestComponent 的主要作用就是 在 所有的classes 中  如果存在一个class，这个class上没有使用@TestConfiguration注解， 那么
+			 * containNonTestComponent 就会返回true，就会导致这里直接返回classes ，因此就不再 寻找@SpringBootApplication 启动类。
+			 *
+			 * 如果classes中的所有class类上都使用了@TestConfiguration 注解标注 则containsNonTestComponent 返回false，就会继续寻找 @SpringBootApplication 启动类
+			 *因此我们说：
+			 * If you want to customize the primary configuration, you can use a nested @TestConfiguration class.
+			 * Unlike a nested @Configuration class, which would be used instead of your application’s primary configuration,
+			 * a nested @TestConfiguration class is used in addition to your application’s primary configuration.
+			 */
 			return classes;
 		}
 		/**
@@ -372,6 +382,10 @@ public class SpringBootTestContextBootstrapper extends DefaultTestContextBootstr
 
 	private boolean containsNonTestComponent(Class<?>[] classes) {
 		for (Class<?> candidate : classes) {
+			//如果这个类没有TestConfiguration,则返回true。如果有@TestConfiguration 继续判断下一个class。也就是 但凡 classes中 有一个类是没有@TestConfiguration注解就会返回true，
+			//比如 对于org.springframework.boot.docs.features.testing.utilities.testresttemplate.MySpringBootTests.RestTemplateBuilderConfiguration 这个类 存在@TestConfiguration
+			//因此MergedAnnotations.from(candidate, SearchStrategy.INHERITED_ANNOTATIONS)
+			// 					.isPresent(TestConfiguration.class) =true
 			if (!MergedAnnotations.from(candidate, SearchStrategy.INHERITED_ANNOTATIONS)
 					.isPresent(TestConfiguration.class)) {
 				return true;
